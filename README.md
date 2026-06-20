@@ -58,6 +58,39 @@ Press **F5** in VS Code to launch an Extension Development Host with Studio load
 | `npm run watch` | Rebuild on file change |
 | `npm run lint` | Run ESLint over `src/` |
 
+## Packaging as an installable extension (.vsix)
+
+To produce a single file that anyone can install into VS Code without building from source, package the extension into a `.vsix`. VS Code uses the official packaging tool `@vscode/vsce`.
+
+**1. Install the packaging tool** (once, globally):
+
+```bash
+npm install -g @vscode/vsce
+```
+
+Or run it without installing, using `npx @vscode/vsce` in place of `vsce` in the commands below.
+
+**2. Build the `.vsix`** from the repository root:
+
+```bash
+vsce package
+```
+
+This automatically runs `npm run compile` first (via the `vscode:prepublish` hook), then bundles the compiled output, manifest, icon, README, and licence into a file named from the manifest - `snapstak-ai-1.0.0.vsix`. Packaging works fully offline and does not require a Marketplace account; only publishing to the Marketplace does.
+
+**3. Install the `.vsix` in VS Code**, either through the UI or the command line:
+
+- **UI:** open the Extensions view, click the `...` (Views and More Actions) menu at the top, choose **Install from VSIX...**, and select the file.
+- **CLI:**
+
+```bash
+code --install-extension snapstak-ai-1.0.0.vsix
+```
+
+After installing, reload VS Code if prompted. The SnapStak icon appears in the activity bar.
+
+> The `publisher` field in `package.json` must be set for packaging to succeed (it is). If you later publish to the Marketplace, that value must match your registered Marketplace publisher ID.
+
 ## Configuration
 
 | Setting | Default | Description |
