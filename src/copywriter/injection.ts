@@ -1,0 +1,88 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { CopywriterBlock } from '../snapstakClient';
+
+// Inline — matches the plain object sent by INJECT_CONTENT in copywriterPanel.ts
+interface PanelState {
+    newHeadings: Record<string, string>;
+    newButtons: Record<string, string[]>;
+    newLinks: Record<string, string[]>;
+    newBodyText: Record<string, Array<{ text: string; wordCount: number; needsReview: boolean }>>;
+}
+
+export interface InjectionEntry {
+    nodeId: string;
+    type: 'heading' | 'bodyText' | 'button' | 'link';
+    originalText: string;
+    newText: string;
+}
+
+export function buildInjectionMap(blocks: CopywriterBlock[], state: PanelState): InjectionEntry[] {
+    const map: InjectionEntry[] = [];
+    for (const block of blocks) {
+        // Guard: only inject heading if a rewrite actually exists
+        const newHeading = state.newHeadings[block.blockId];
+        if (newHeading && newHeading.trim()) {
+            map.push({
+                nodeId: block.blockId,
+                type: 'heading',
+                originalText: block.heading.text,
+                newText: newHeading
+            });
+        }
+        block.buttons.forEach((btn, i) => {
+            const t = state.newButtons[block.blockId]?.[i];
+            if (t) {
+                map.push({ nodeId: `${block.blockId}_btn_${i}`, type: 'button', originalText: btn.text, newText: t });
+            }
+        });
+        block.links.forEach((link, i) => {
+            const t = state.newLinks[block.blockId]?.[i];
+            if (t) {
+                map.push({ nodeId: `${block.blockId}_link_${i}`, type: 'link', originalText: link.text, newText: t });
+            }
+        });
+        state.newBodyText[block.blockId]?.forEach((rewrite, i) => {
+            if (!rewrite.needsReview) {
+                map.push({
+                    nodeId: `${block.blockId}_body_${i}`,
+                    type: 'bodyText',
+                    originalText: block.bodyText[i].text,
+                    newText: rewrite.text
+                });
+            }
+        });
+    }
+    return map;
+}
+
+export async function writeInjectedContent(projectRoot: string, map: InjectionEntry[]): Promise<void> {
+    const exts = ['.html', '.jsx', '.tsx', '.vue', '.js', '.ts'];
+    const files = walkDir(projectRoot, exts);
+    for (const filePath of files) {
+        let content = fs.readFileSync(filePath, 'utf8');
+        let modified = false;
+        for (const entry of map) {
+            if (content.includes(entry.originalText)) {
+                content = content.split(entry.originalText).join(entry.newText);
+                modified = true;
+            }
+        }
+        if (modified) {
+            fs.writeFileSync(filePath, content, 'utf8');
+        }
+    }
+}
+
+function walkDir(dir: string, exts: string[]): string[] {
+    const results: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git') {
+            results.push(...walkDir(full, exts));
+        } else if (entry.isFile() && exts.includes(path.extname(entry.name))) {
+            results.push(full);
+        }
+    }
+    return results;
+}

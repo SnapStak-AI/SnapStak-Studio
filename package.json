@@ -1,0 +1,165 @@
+{
+  "name": "snapstak-ai",
+  "displayName": "SnapStak.ai",
+  "description": "Deconstructing the Web — SnapStak AI tools directly in VS Code",
+  "version": "1.0.0",
+  "publisher": "snapstak",
+  "icon": "media/icon.png",
+
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "AI"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snapstak/snapstak-vscode"
+  },
+  "keywords": [
+    "snapstak",
+    "ai",
+    "web",
+    "react",
+    "component"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "snapstak.extractZip",
+        "title": "SnapStak: Extract & Open Project",
+        "icon": "$(play)"
+      },
+      {
+        "command": "snapstak.openExtracted",
+        "title": "SnapStak: Browse Project",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "snapstak.refreshZipView",
+        "title": "SnapStak: Refresh Local Projects",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "snapstak.refreshWorkspaces",
+        "title": "SnapStak: Refresh Workspace",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "snapstak.runProject",
+        "title": "SnapStak: Run Project",
+        "icon": "$(play)"
+      },
+      {
+        "command": "snapstak.openDashboard",
+        "title": "SnapStak: Open Dashboard"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "snapstak",
+          "title": "SnapStak.ai",
+          "icon": "media/snapstak-icon.svg"
+        }
+      ],
+      "panel": [],
+      "secondarySidebar": [
+        {
+          "id": "snapstak-panel",
+          "title": "SnapStak",
+          "icon": "media/snapstak-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "snapstak": [
+        {
+          "id": "snapstak.workspacesView",
+          "name": "Workspace"
+        },
+        {
+          "id": "snapstak.zipView",
+          "name": "Local Projects"
+        },
+        {
+          "type": "webview",
+          "id": "snapstak.settingsView",
+          "name": "Settings"
+        }
+      ],
+      "snapstak-panel": [
+        {
+          "type": "webview",
+          "id": "snapstak.panelView",
+          "name": "SnapStak AI"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "snapstak.refreshWorkspaces",
+          "when": "view == snapstak.workspacesView",
+          "group": "navigation"
+        },
+        {
+          "command": "snapstak.runProject",
+          "when": "view == snapstak.workspacesView",
+          "group": "navigation"
+        },
+        {
+          "command": "snapstak.refreshZipView",
+          "when": "view == snapstak.zipView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "snapstak.extractZip",
+          "when": "view == snapstak.zipView && viewItem == zipFile",
+          "group": "inline"
+        },
+        {
+          "command": "snapstak.openExtracted",
+          "when": "view == snapstak.zipView && viewItem == zipFileExtracted",
+          "group": "inline"
+        },
+        {
+          "command": "snapstak.runProject",
+          "when": "view == snapstak.workspacesView && viewItem == indexFile",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SnapStak.ai",
+      "properties": {
+        "snapstak.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "SnapStak server URL"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0"
+  }
+}
